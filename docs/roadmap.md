@@ -2,9 +2,9 @@
 
 The roadmap stays short. A milestone is complete only when code, tests, and a runnable integration path exist.
 
-## v0.1 — Policy decision boundary
+## Milestone 1 — Policy decision boundary — Completed
 
-Completed:
+Delivered:
 
 - provider-neutral action request;
 - Allow, RequireApproval, and Deny;
@@ -13,31 +13,31 @@ Completed:
 - HTTP evaluation endpoint;
 - unit tests and CI.
 
-The first tagged release remains deferred until the MCP enforcement path is validated.
+## Milestone 2 — MCP stdio proxy — Completed
 
-## v0.2 — MCP stdio proxy
+Delivered:
 
-Implementation in review:
+- stdio child-process proxy;
+- pass-through for non-tool JSON-RPC;
+- interception of tools/call;
+- policy evaluation before forwarding;
+- Deny blocked before upstream execution;
+- RequireApproval blocked while no approval adapter exists;
+- unchanged relay of upstream responses and errors;
+- fail-closed handling for malformed JSON/tool-call envelopes;
+- integration-style tests proving allowed, denied, pass-through, and upstream-error behavior;
+- documented command using the official filesystem MCP server;
+- full pull-request CI validation.
 
-- [x] stdio child-process proxy;
-- [x] pass-through for non-tool JSON-RPC;
-- [x] intercept tools/call;
-- [x] evaluate before forwarding;
-- [x] stop Deny before upstream execution;
-- [x] stop RequireApproval while no approval adapter exists;
-- [x] relay upstream responses and errors unchanged;
-- [x] fail closed on malformed JSON/tool-call envelopes;
-- [x] integration-style tests with an in-memory upstream;
-- [x] documented command using the official filesystem MCP server;
-- [ ] full pull-request CI validation.
+This milestone intentionally adds no persistence, dashboard, hosted service, or argument-level inspection.
 
-No persistence, dashboard, or hosted service belongs in this milestone.
-
-## v0.3 — Decision receipts
+## Milestone 3 — Decision receipts
 
 Goal: make decisions reviewable without storing unnecessary sensitive payloads.
 
-Planned separately:
+Tracked in issue #3.
+
+Planned:
 
 - local SQLite storage;
 - bounded decision metadata;
@@ -59,3 +59,7 @@ Only after real usage:
 - UI.
 
 Multi-tenant SaaS control planes, anomaly scoring, and model-based policy decisions remain out of scope until there is evidence they are needed.
+
+## Release principle
+
+The first tagged release should represent a usable enforcement path, not only a policy library. With Milestone 2 complete, the repository is ready for its first pre-1.0 release after merge-to-main validation.

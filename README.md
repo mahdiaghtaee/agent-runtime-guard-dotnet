@@ -6,7 +6,7 @@ A small .NET service for evaluating AI-agent tool actions before execution.
 
 The project keeps one boundary explicit: an agent proposes a tool action, local deterministic policy returns **Allow**, **RequireApproval**, or **Deny**, and the integration decides whether execution may continue.
 
-> **Status:** early development. The policy boundary is established; the stdio MCP enforcement path is being validated. This is not a production security product.
+> **Status:** early development. The deterministic policy boundary and stdio MCP enforcement path are implemented and covered by CI. This is not a production security product.
 
 ## Current scope
 
