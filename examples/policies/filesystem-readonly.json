@@ -1,0 +1,42 @@
+{
+  "defaultEffect": "RequireApproval",
+  "defaultReason": "This MCP tool is not explicitly allowed by the local policy.",
+  "rules": [
+    {
+      "id": "allow-filesystem-reads",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "read*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Read-oriented filesystem tools are allowed in this demo policy."
+    },
+    {
+      "id": "allow-filesystem-listing",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "list*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Directory listing tools are allowed in this demo policy."
+    },
+    {
+      "id": "deny-filesystem-write",
+      "priority": 200,
+      "effect": "Deny",
+      "toolPattern": "write*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Write-oriented filesystem tools are blocked by this demo policy."
+    },
+    {
+      "id": "deny-filesystem-edit",
+      "priority": 200,
+      "effect": "Deny",
+      "toolPattern": "edit*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Edit-oriented filesystem tools are blocked by this demo policy."
+    }
+  ]
+}

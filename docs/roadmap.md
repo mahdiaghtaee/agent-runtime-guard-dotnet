@@ -1,47 +1,50 @@
 # Roadmap
 
-The roadmap is intentionally short. A milestone is only marked complete when code, tests, and a runnable example exist.
+The roadmap stays short. A milestone is complete only when code, tests, and a runnable integration path exist.
 
-## v0.1 — Policy decision boundary
+## Milestone 1 — Policy decision boundary — Completed
 
-Goal: define and validate the smallest useful pre-execution policy model.
+Delivered:
 
-- [x] provider-neutral action request;
-- [x] `Allow`, `RequireApproval`, and `Deny`;
-- [x] deterministic rule precedence;
-- [x] conservative default decision;
-- [x] HTTP evaluation endpoint;
-- [x] unit tests and CI;
-- [ ] publish the first tagged release after the repository is exercised outside the test project.
+- provider-neutral action request;
+- Allow, RequireApproval, and Deny;
+- deterministic rule precedence;
+- conservative default decision;
+- HTTP evaluation endpoint;
+- unit tests and CI.
 
-## v0.2 — MCP stdio proxy
+## Milestone 2 — MCP stdio proxy — Completed
 
-Goal: route one real MCP execution path through policy evaluation.
+Delivered:
 
-Planned:
+- stdio child-process proxy;
+- pass-through for non-tool JSON-RPC;
+- interception of tools/call;
+- policy evaluation before forwarding;
+- Deny blocked before upstream execution;
+- RequireApproval blocked while no approval adapter exists;
+- unchanged relay of upstream responses and errors;
+- fail-closed handling for malformed JSON/tool-call envelopes;
+- integration-style tests proving allowed, denied, pass-through, and upstream-error behavior;
+- documented command using the official filesystem MCP server;
+- full pull-request CI validation.
 
-- MCP stdio client/server proxy;
-- pass-through tool discovery;
-- intercept `tools/call`;
-- evaluate before forwarding;
-- return a clear protocol error on denied actions;
-- preserve upstream error behavior;
-- integration test with a small local MCP server.
+This milestone intentionally adds no persistence, dashboard, hosted service, or argument-level inspection.
 
-No dashboard is required for this milestone.
-
-## v0.3 — Decision receipts
+## Milestone 3 — Decision receipts
 
 Goal: make decisions reviewable without storing unnecessary sensitive payloads.
 
-Candidate work:
+Tracked in issue #3.
 
-- local SQLite decision log;
-- bounded metadata;
-- correlation/session identifiers;
-- query/export command;
+Planned:
+
+- local SQLite storage;
+- bounded decision metadata;
+- session/correlation lookup;
+- export/query path;
 - retention controls;
-- explicit redaction tests.
+- tests proving raw prompts and complete tool arguments are excluded by default.
 
 ## Later
 
@@ -55,4 +58,8 @@ Only after real usage:
 - replay;
 - UI.
 
-Multi-tenant control planes, hosted SaaS features, anomaly scoring, and model-based policy decisions are explicitly out of scope until there is evidence they are needed.
+Multi-tenant SaaS control planes, anomaly scoring, and model-based policy decisions remain out of scope until there is evidence they are needed.
+
+## Release principle
+
+The first tagged release should represent a usable enforcement path, not only a policy library. With Milestone 2 complete, the repository is ready for its first pre-1.0 release after merge-to-main validation.
