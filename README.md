@@ -4,160 +4,170 @@
 
 A small .NET service for evaluating AI-agent tool actions before execution.
 
-The first version focuses on one boundary: an agent proposes a tool action, the guard evaluates local policy, and the caller receives one of three decisions:
+The project keeps one boundary explicit: an agent proposes a tool action, local deterministic policy returns **Allow**, **RequireApproval**, or **Deny**, and the integration decides whether execution may continue.
 
-- `Allow`
-- `RequireApproval`
-- `Deny`
-
-The guard does not execute the tool itself. That separation is intentional.
-
-> **Status:** early v0.1 foundation. This is an engineering experiment, not a production security product.
-
-## Why this project exists
-
-Coding agents and MCP-enabled applications increasingly call shells, databases, file systems, and external services. Prompt-level instructions can influence behavior, but they are not an independent enforcement boundary.
-
-This repository explores a narrower question:
-
-> Can a tool call be evaluated by a separate, deterministic policy component before a side effect occurs?
-
-The first milestone is deliberately small so the behavior can be explained, tested, and reviewed without a large framework around it.
+> **Status:** early development. The policy boundary is established; the stdio MCP enforcement path is being validated. This is not a production security product.
 
 ## Current scope
 
-The v0.1 branch introduces:
+Implemented:
 
-- provider-neutral tool-action request models;
-- deterministic rule evaluation;
-- explicit allow / approval / deny outcomes;
-- priority-based rule selection;
-- wildcard matching for tool, operation, and resource;
-- a conservative configurable default decision;
-- a minimal ASP.NET Core evaluation endpoint;
-- unit tests and CI;
-- an ADR describing the trust boundary.
+- provider-neutral policy contracts;
+- deterministic rule precedence and wildcard matching;
+- conservative configurable defaults;
+- an ASP.NET Core evaluation endpoint;
+- a stdio MCP child-process proxy;
+- interception of MCP tools/call before upstream execution;
+- unchanged forwarding of allowed and non-tool JSON-RPC traffic;
+- local errors for Deny and currently-unhandled RequireApproval decisions;
+- fail-closed handling for malformed client JSON;
+- tests proving a denied tool call never reaches the upstream side of the proxy;
+- CI and ADRs for the trust boundary.
 
-Not implemented yet:
+Deliberately not implemented yet:
 
-- MCP proxying;
-- approval workflow;
+- approval UX/workflows;
 - persistent decision receipts;
 - replay;
+- argument-level secret or command inspection;
 - agent-specific adapters;
-- command-argument inspection;
-- secret detection;
-- identity or multi-tenant policy;
-- a dashboard.
+- multi-tenant policy administration;
+- dashboards or hosted control-plane features.
 
-Those are deferred until the decision model is exercised in a real integration.
+## HTTP quick start
 
-## Quick start
+Requirements: .NET 10 SDK.
 
-Requirements:
-
-- .NET 10 SDK
-
-Run the API:
-
-```bash
+~~~bash
 dotnet run --project src/AgentRuntimeGuard.Api/AgentRuntimeGuard.Api.csproj
-```
+~~~
 
-Then evaluate an action:
+Evaluate a policy request:
 
-```bash
-curl -X POST http://localhost:5078/v1/evaluate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "agentId": "local-coding-agent",
-    "sessionId": "session-001",
-    "toolName": "filesystem",
-    "operation": "read",
-    "resource": "src/Program.cs",
-    "tags": ["workspace"]
-  }'
-```
+~~~bash
+curl -X POST http://localhost:5078/v1/evaluate -H "Content-Type: application/json" -d '{"agentId":"local-coding-agent","sessionId":"session-001","toolName":"filesystem","operation":"read","resource":"src/Program.cs","tags":["workspace"]}'
+~~~
 
-## Policy behavior
+## MCP stdio proxy
 
-Rules live in `src/AgentRuntimeGuard.Api/appsettings.json`.
+The proxy launches an upstream MCP server and keeps protocol traffic on stdin/stdout.
 
-A rule contains:
+~~~text
+AgentRuntimeGuard.McpProxy --policy <policy.json> -- <command> [arguments...]
+~~~
 
-```json
+Example with the official filesystem MCP server:
+
+~~~bash
+dotnet run --project src/AgentRuntimeGuard.McpProxy -- --policy examples/policies/filesystem-readonly.json -- npx -y @modelcontextprotocol/server-filesystem .
+~~~
+
+On Windows, launch npx through cmd:
+
+~~~powershell
+dotnet run --project src/AgentRuntimeGuard.McpProxy -- --policy examples/policies/filesystem-readonly.json -- cmd /c npx -y @modelcontextprotocol/server-filesystem .
+~~~
+
+The sample policy allows read/list-style tools, denies write/edit-style tools, and defaults everything else to RequireApproval. Since no approval adapter exists yet, RequireApproval stops the call.
+
+### MCP policy mapping
+
+For an MCP tools/call request:
+
+~~~text
+params.name -> ToolName
+tools/call  -> Operation
+mcp:stdio   -> Resource
+~~~
+
+The complete MCP arguments object is not copied into the policy request or local policy error.
+
+Behavior:
+
+- **Allow**: forward the original JSON line unchanged.
+- **Deny**: stop locally and return a JSON-RPC error.
+- **RequireApproval**: stop locally until an approval adapter exists.
+- Other valid JSON-RPC messages: pass through unchanged.
+- Malformed JSON/tool-call envelopes: fail closed.
+
+The current policy-block response uses project-defined JSON-RPC server error code **-32001** and bounded decision metadata. Upstream stderr is relayed to proxy stderr so stdout stays protocol-only.
+
+## Policy rules
+
+See examples/policies/filesystem-readonly.json.
+
+A rule is explicit and deterministic:
+
+~~~json
 {
-  "id": "review-database-writes",
+  "id": "deny-filesystem-write",
   "priority": 200,
-  "effect": "RequireApproval",
-  "toolPattern": "database",
-  "operationPattern": "write",
-  "resourcePattern": "*",
-  "reason": "Database writes require an explicit approval step."
+  "effect": "Deny",
+  "toolPattern": "write*",
+  "operationPattern": "tools/call",
+  "resourcePattern": "mcp:stdio",
+  "reason": "Write-oriented filesystem tools are blocked by this demo policy."
 }
-```
+~~~
 
-Matching is case-insensitive and supports `*` as a simple wildcard.
-
-When multiple rules match:
+When several rules match:
 
 1. higher priority wins;
-2. at the same priority, the more restrictive effect wins (`Deny` > `RequireApproval` > `Allow`);
-3. rule ID provides deterministic final ordering.
-
-If no rule matches, the configured default is returned. The starter default is `RequireApproval`.
+2. at the same priority, Deny outranks RequireApproval, which outranks Allow;
+3. rule ID is the deterministic final tie-breaker.
 
 ## Repository layout
 
-```text
+~~~text
 src/
   AgentRuntimeGuard.Abstractions/
   AgentRuntimeGuard.Core/
   AgentRuntimeGuard.Api/
+  AgentRuntimeGuard.McpProxy/
 
 tests/
   AgentRuntimeGuard.Tests/
+
+examples/
+  policies/
 
 docs/
   adr/
   architecture.md
   roadmap.md
-```
-
-- **Abstractions** owns the public decision contract.
-- **Core** owns deterministic policy evaluation.
-- **API** owns transport and configuration.
-- **Tests** validate behavior without external services.
+~~~
 
 ## Trust boundary
 
-The guard can only enforce actions that actually pass through it.
+The guard only enforces actions that actually pass through it.
 
-If an agent can bypass the guard and call a shell, database, or MCP server directly, the policy has no enforcement value. Integration placement is therefore part of the security model.
+For stdio MCP, the host must launch the guard proxy instead of launching the upstream MCP server directly. If an agent, user, or host can bypass the proxy and start the upstream server through another path, this project does not prevent that bypass.
 
-See [ADR 0001](docs/adr/0001-policy-before-execution.md).
+The proxy is not an OS sandbox, credential broker, network firewall, or process-isolation mechanism.
+
+See docs/adr/0001-policy-before-execution.md and docs/adr/0002-transparent-mcp-stdio-proxy.md.
 
 ## Design principles
 
-- keep the first enforcement boundary deterministic;
-- avoid provider-specific agent contracts in the core;
+- keep enforcement deterministic before adding model-based decisions;
+- keep MCP concerns outside the policy core;
 - prefer explicit decisions over opaque risk scores;
-- fail conservatively when policy does not match;
-- do not persist raw prompts or tool arguments by default;
-- add adapters only after the protocol boundary is understood;
-- document limitations next to capabilities.
+- fail conservatively when a tool call cannot be safely classified;
+- minimize copied/stored sensitive payloads;
+- add features only after a concrete integration justifies them;
+- keep limitations next to capability claims.
 
 ## Roadmap
 
-See [docs/roadmap.md](docs/roadmap.md).
+See docs/roadmap.md.
 
-The next meaningful milestone is an MCP stdio proxy that can route tool calls through this evaluator without changing the upstream MCP server.
+After the MCP proxy, the next planned milestone is bounded local decision receipts, not a dashboard or hosted control plane.
 
 ## Security
 
 This repository is experimental. Do not use it as the only control protecting production credentials, shells, databases, or infrastructure.
 
-See [SECURITY.md](SECURITY.md).
+See SECURITY.md.
 
 ## License
 

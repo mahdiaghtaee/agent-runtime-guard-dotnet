@@ -1,79 +1,87 @@
 # Architecture
 
-## Initial boundary
+## Policy boundary
 
-The first version has one job: turn a proposed tool action into a policy decision.
+The core turns a proposed tool action into a deterministic decision and never executes the action itself.
 
-```text
-Agent / MCP client
+~~~text
+Agent / integration
         |
-        | proposed action
         v
-+------------------------+
-| Agent Runtime Guard    |
-|                        |
-| request validation     |
-| deterministic matching |
-| explicit decision      |
-+------------------------+
-        |
-        +--> Allow
-        +--> RequireApproval
-        +--> Deny
-```
+PolicyEvaluator
+   |       |       |
+ Allow  Approval  Deny
+~~~
 
-The guard does not execute the action.
+Keeping evaluation separate from execution makes the behavior testable without an agent SDK or external model.
 
-That separation keeps policy evaluation and side-effect execution as different failure domains.
+## MCP stdio enforcement path
+
+The MCP adapter adds one concrete pre-execution path while keeping MCP protocol concerns out of Core.
+
+~~~text
+MCP host
+   |
+   | stdin JSON-RPC
+   v
+AgentRuntimeGuard.McpProxy
+   |
+   | tools/call -> PolicyEvaluator
+   |                |
+   | Allow ----------+
+   v
+Upstream MCP server child process
+   |
+   v
+result/error -> host
+~~~
+
+Valid JSON-RPC messages other than tools/call pass through unchanged. The proxy does not own MCP initialization, discovery, capability negotiation, notifications, or extension semantics.
+
+Malformed client JSON and malformed tools/call envelopes fail closed.
 
 ## Projects
 
 ### AgentRuntimeGuard.Abstractions
 
-Transport-neutral contracts:
-
-- `ToolActionRequest`
-- `PolicyEffect`
-- `PolicyEvaluationResult`
-- `IPolicyEvaluator`
-
-This project should stay free of ASP.NET Core, MCP, database, or provider dependencies.
+Transport-neutral contracts: ToolActionRequest, PolicyEffect, PolicyEvaluationResult, and IPolicyEvaluator.
 
 ### AgentRuntimeGuard.Core
 
-Deterministic policy behavior:
-
-- rule model;
-- wildcard matcher;
-- priority and restriction ordering;
-- conservative default decision.
-
-The core should remain usable from HTTP, MCP, CLI, or an embedded adapter.
+Deterministic policy matching, priority ordering, wildcard matching, and conservative defaults.
 
 ### AgentRuntimeGuard.Api
 
-ASP.NET Core transport and configuration.
+A small HTTP integration boundary for direct policy evaluation.
 
-The HTTP API is an integration boundary, not the domain model.
+### AgentRuntimeGuard.McpProxy
+
+The stdio adapter:
+
+- starts upstream without a shell;
+- sends command arguments through ProcessStartInfo.ArgumentList;
+- inspects only enough JSON-RPC structure to identify tools/call;
+- maps tool name into the existing policy contract;
+- forwards allowed requests unchanged;
+- blocks Deny and RequireApproval before upstream execution;
+- relays upstream stdout responses/errors unchanged;
+- sends upstream diagnostics only to stderr.
 
 ## Data minimization
 
-The request model does not include raw prompts or complete tool argument payloads.
+For stdio MCP the adapter maps:
 
-The current fields are enough to test policy shape:
+- params.name to ToolName;
+- tools/call to Operation;
+- mcp:stdio to Resource;
+- a local proxy-instance ID to the correlation/session field.
 
-- caller-supplied agent and session identifiers;
-- tool;
-- operation;
-- resource;
-- bounded tags.
+The MCP arguments object is not copied into policy results or local block responses.
 
-Future argument inspection should be introduced only with an explicit retention and redaction design.
+Argument-aware policy is intentionally deferred until there is an explicit redaction/retention design.
 
 ## Enforcement limitation
 
-A policy decision is not enforcement unless the execution path is forced through the guard.
+The proxy creates an enforcement point only when the host is configured to use it.
 
-The project will not claim otherwise.
-
-The MCP proxy milestone is intended to create one concrete enforcement path that can be demonstrated end to end.
+It does not stop a sufficiently privileged actor from launching the upstream server directly, and it does not provide process sandboxing, network isolation, or credential brokering.
