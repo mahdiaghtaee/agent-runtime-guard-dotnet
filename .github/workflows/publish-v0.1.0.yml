@@ -1,0 +1,35 @@
+name: Publish v0.1.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/releases/v0.1.0.md
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Publish v0.1.0
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if gh release view v0.1.0 >/dev/null 2>&1; then
+            echo "v0.1.0 already exists"
+            exit 0
+          fi
+
+          gh release create v0.1.0 \
+            --target "$GITHUB_SHA" \
+            --title "v0.1.0 — Deterministic policy gate and MCP stdio proxy" \
+            --notes-file docs/releases/v0.1.0.md
