@@ -66,6 +66,94 @@ public sealed class McpStdioProxySessionTests
     }
 
     [Fact]
+    public async Task Non_tool_message_passes_through_without_policy_evaluation()
+    {
+        var evaluator = new PolicyEvaluator(Rules());
+        var session = CreateSession(evaluator);
+        var clientInput = new LinePipe();
+        var clientOutput = new LinePipe();
+        var upstreamInput = new LinePipe();
+        var upstreamOutput = new LinePipe();
+        var received = new List<string>();
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var proxyTask = session.RunAsync(
+            clientInput.Reader,
+            clientOutput.Writer,
+            upstreamOutput.Reader,
+            upstreamInput.Writer,
+            cancellation.Token);
+
+        var serverTask = RunFakeUpstreamAsync(
+            upstreamInput,
+            upstreamOutput,
+            received,
+            cancellation.Token);
+
+        const string request =
+            """{"jsonrpc":"2.0","id":9,"method":"tools/list","params":{}}""";
+
+        await clientInput.WriteAsync(request, cancellation.Token);
+        clientInput.CompleteWriter();
+
+        await Task.WhenAll(proxyTask, serverTask);
+
+        Assert.Single(received);
+        Assert.Equal(request, received[0]);
+    }
+
+    [Fact]
+    public async Task Allowed_tool_call_preserves_upstream_error_response()
+    {
+        var evaluator = new PolicyEvaluator(
+            Rules(
+                Rule(
+                    "allow-fail",
+                    PolicyEffect.Allow,
+                    "fail")));
+
+        var session = CreateSession(evaluator);
+        var clientInput = new LinePipe();
+        var clientOutput = new LinePipe();
+        var upstreamInput = new LinePipe();
+        var upstreamOutput = new LinePipe();
+        var received = new List<string>();
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var proxyTask = session.RunAsync(
+            clientInput.Reader,
+            clientOutput.Writer,
+            upstreamOutput.Reader,
+            upstreamInput.Writer,
+            cancellation.Token);
+
+        var serverTask = RunFakeUpstreamAsync(
+            upstreamInput,
+            upstreamOutput,
+            received,
+            cancellation.Token);
+
+        const string request =
+            """{"jsonrpc":"2.0","id":10,"method":"tools/call","params":{"name":"fail","arguments":{}}}""";
+
+        await clientInput.WriteAsync(request, cancellation.Token);
+        clientInput.CompleteWriter();
+
+        await Task.WhenAll(proxyTask, serverTask);
+
+        var response = await clientOutput.ReadAsync(cancellation.Token);
+
+        const string expected =
+            """{"jsonrpc":"2.0","id":10,"error":{"code":-32099,"message":"upstream failure"}}""";
+
+        Assert.Single(received);
+        Assert.Equal(request, received[0]);
+        Assert.Equal(expected, response);
+    }
+
+    [Fact]
     public async Task Denied_tool_call_never_reaches_upstream()
     {
         var evaluator = new PolicyEvaluator(
@@ -208,8 +296,12 @@ public sealed class McpStdioProxySessionTests
                     .GetProperty("name")
                     .GetString();
 
-                var response =
-                    $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"content\":[{{\"type\":\"text\",\"text\":\"called:{toolName}\"}}]}}}}";
+                var response = string.Equals(
+                    toolName,
+                    "fail",
+                    StringComparison.Ordinal)
+                    ? $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"error\":{{\"code\":-32099,\"message\":\"upstream failure\"}}}}"
+                    : $"{{\"jsonrpc\":\"2.0\",\"id\":{id},\"result\":{{\"content\":[{{\"type\":\"text\",\"text\":\"called:{toolName}\"}}]}}}}";
 
                 await responses.WriteAsync(
                     response,
