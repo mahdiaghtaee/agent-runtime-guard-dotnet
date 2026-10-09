@@ -15,5 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="../../src/AgentRuntimeGuard.Abstractions/AgentRuntimeGuard.Abstractions.csproj" />
     <ProjectReference Include="../../src/AgentRuntimeGuard.Core/AgentRuntimeGuard.Core.csproj" />
+    <ProjectReference Include="../../src/AgentRuntimeGuard.McpProxy/AgentRuntimeGuard.McpProxy.csproj" />
   </ItemGroup>
 </Project>
