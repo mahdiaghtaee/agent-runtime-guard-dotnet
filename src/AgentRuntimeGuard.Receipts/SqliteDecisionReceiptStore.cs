@@ -36,8 +36,7 @@ public sealed class SqliteDecisionReceiptStore : IDecisionReceiptStore
         _connectionString = new SqliteConnectionStringBuilder
         {
             DataSource = fullPath,
-            Mode = SqliteOpenMode.ReadWriteCreate,
-            Cache = SqliteCacheMode.Shared
+            Mode = SqliteOpenMode.ReadWriteCreate
         }.ToString();
 
         _maxReceipts = maxReceipts;
