@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentRuntimeGuard.Abstracti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentRuntimeGuard.Core", "src\AgentRuntimeGuard.Core\AgentRuntimeGuard.Core.csproj", "{0D136B73-10DD-4CE1-8F0C-523585E97238}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentRuntimeGuard.Receipts", "src\AgentRuntimeGuard.Receipts\AgentRuntimeGuard.Receipts.csproj", "{9F07CD20-1B9F-4512-86D8-CE747DF78952}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentRuntimeGuard.Api", "src\AgentRuntimeGuard.Api\AgentRuntimeGuard.Api.csproj", "{032BE620-C780-40E1-B4D6-8142812B7C32}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AgentRuntimeGuard.McpProxy", "src\AgentRuntimeGuard.McpProxy\AgentRuntimeGuard.McpProxy.csproj", "{5DF8F3F5-8B13-4A5D-B1DE-3E91B8EC2BFA}"
@@ -26,6 +28,10 @@ Global
         {0D136B73-10DD-4CE1-8F0C-523585E97238}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {0D136B73-10DD-4CE1-8F0C-523585E97238}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {0D136B73-10DD-4CE1-8F0C-523585E97238}.Release|Any CPU.Build.0 = Release|Any CPU
+        {9F07CD20-1B9F-4512-86D8-CE747DF78952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {9F07CD20-1B9F-4512-86D8-CE747DF78952}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {9F07CD20-1B9F-4512-86D8-CE747DF78952}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {9F07CD20-1B9F-4512-86D8-CE747DF78952}.Release|Any CPU.Build.0 = Release|Any CPU
         {032BE620-C780-40E1-B4D6-8142812B7C32}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
         {032BE620-C780-40E1-B4D6-8142812B7C32}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {032BE620-C780-40E1-B4D6-8142812B7C32}.Release|Any CPU.ActiveCfg = Release|Any CPU
