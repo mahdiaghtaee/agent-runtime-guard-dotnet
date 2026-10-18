@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../AgentRuntimeGuard.Abstractions/AgentRuntimeGuard.Abstractions.csproj" />
+  </ItemGroup>
+</Project>
