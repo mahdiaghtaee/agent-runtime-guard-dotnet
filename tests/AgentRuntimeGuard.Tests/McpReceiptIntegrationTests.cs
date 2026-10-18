@@ -161,8 +161,8 @@ public sealed class McpReceiptIntegrationTests
     private sealed class TempDatabase : IAsyncDisposable
     {
         private readonly string _directory =
-            Path.Combine(
-                Path.GetTempPath(),
+            System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(),
                 "agent-runtime-guard-tests",
                 Guid.NewGuid().ToString("N"));
 
