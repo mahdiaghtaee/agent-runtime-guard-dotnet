@@ -29,11 +29,11 @@ Delivered:
 - documented command using the official filesystem MCP server;
 - full pull-request CI validation.
 
-## Milestone 3 — Decision receipts — In review
+## Milestone 3 — Decision receipts — Completed
 
 Tracked in issue #3.
 
-Implemented on the feature branch:
+Delivered:
 
 - [x] optional SQLite persistence;
 - [x] bounded decision metadata;
@@ -43,7 +43,7 @@ Implemented on the feature branch:
 - [x] schema tests excluding prompt, arguments, reason, and tags;
 - [x] Allow, RequireApproval, and Deny receipt coverage;
 - [x] fail-closed behavior when enabled persistence fails;
-- [ ] full pull-request CI validation.
+- [x] full pull-request CI validation.
 
 This milestone deliberately adds no cloud backend, analytics dashboard, anomaly scoring, multi-tenant administration, or database encryption.
 
