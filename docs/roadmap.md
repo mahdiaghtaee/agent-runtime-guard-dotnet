@@ -29,22 +29,23 @@ Delivered:
 - documented command using the official filesystem MCP server;
 - full pull-request CI validation.
 
-This milestone intentionally adds no persistence, dashboard, hosted service, or argument-level inspection.
-
-## Milestone 3 — Decision receipts
-
-Goal: make decisions reviewable without storing unnecessary sensitive payloads.
+## Milestone 3 — Decision receipts — In review
 
 Tracked in issue #3.
 
-Planned:
+Implemented on the feature branch:
 
-- local SQLite storage;
-- bounded decision metadata;
-- session/correlation lookup;
-- export/query path;
-- retention controls;
-- tests proving raw prompts and complete tool arguments are excluded by default.
+- [x] optional SQLite persistence;
+- [x] bounded decision metadata;
+- [x] session/correlation lookup;
+- [x] JSONL query/export command;
+- [x] deterministic maximum-count retention;
+- [x] schema tests excluding prompt, arguments, reason, and tags;
+- [x] Allow, RequireApproval, and Deny receipt coverage;
+- [x] fail-closed behavior when enabled persistence fails;
+- [ ] full pull-request CI validation.
+
+This milestone deliberately adds no cloud backend, analytics dashboard, anomaly scoring, multi-tenant administration, or database encryption.
 
 ## Later
 
@@ -59,7 +60,3 @@ Only after real usage:
 - UI.
 
 Multi-tenant SaaS control planes, anomaly scoring, and model-based policy decisions remain out of scope until there is evidence they are needed.
-
-## Release principle
-
-The first tagged release should represent a usable enforcement path, not only a policy library. With Milestone 2 complete, the repository is ready for its first pre-1.0 release after merge-to-main validation.

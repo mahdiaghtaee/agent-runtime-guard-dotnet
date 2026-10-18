@@ -4,7 +4,22 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
-No active release changes yet.
+### Added
+
+- Opt-in local SQLite decision receipts.
+- Session-scoped receipt query/export as JSON Lines.
+- Deterministic maximum-count retention.
+- Receipt metadata length bounds.
+- Tests for Allow, RequireApproval, Deny, retention, session filtering, and schema data minimization.
+
+### Changed
+
+- When receipt persistence is explicitly enabled, a persistence failure prevents returning an unrecorded policy decision.
+
+### Security
+
+- Receipt schema excludes raw prompts, MCP arguments, policy reasons, tags, tool results, and upstream stderr.
+- SQLite files are local and unencrypted; filesystem protection remains an operator responsibility.
 
 ## 0.1.0 - 2026-10-09
 

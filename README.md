@@ -6,7 +6,7 @@ A small .NET service for evaluating AI-agent tool actions before execution.
 
 The project keeps one boundary explicit: an agent proposes a tool action, local deterministic policy returns **Allow**, **RequireApproval**, or **Deny**, and the integration decides whether execution may continue.
 
-> **Status:** early development. The deterministic policy boundary and stdio MCP enforcement path are implemented and covered by CI. This is not a production security product.
+> **Status:** early development. The deterministic policy boundary and stdio MCP enforcement path are implemented. Optional local decision receipts are now being validated. This is not a production security product.
 
 ## Current scope
 
@@ -22,12 +22,15 @@ Implemented:
 - local errors for Deny and currently-unhandled RequireApproval decisions;
 - fail-closed handling for malformed client JSON;
 - tests proving a denied tool call never reaches the upstream side of the proxy;
+- opt-in local SQLite decision receipts;
+- retention by maximum receipt count;
+- session-scoped receipt query/export as JSON Lines;
+- tests proving prompt, arguments, reason, and tags are not columns in the receipt schema;
 - CI and ADRs for the trust boundary.
 
 Deliberately not implemented yet:
 
 - approval UX/workflows;
-- persistent decision receipts;
 - replay;
 - argument-level secret or command inspection;
 - agent-specific adapters;
@@ -53,7 +56,7 @@ curl -X POST http://localhost:5078/v1/evaluate -H "Content-Type: application/jso
 The proxy launches an upstream MCP server and keeps protocol traffic on stdin/stdout.
 
 ~~~text
-AgentRuntimeGuard.McpProxy --policy <policy.json> -- <command> [arguments...]
+AgentRuntimeGuard.McpProxy --policy <policy.json> [receipt options] -- <command> [arguments...]
 ~~~
 
 Example with the official filesystem MCP server:
@@ -92,6 +95,71 @@ Behavior:
 
 The current policy-block response uses project-defined JSON-RPC server error code **-32001** and bounded decision metadata. Upstream stderr is relayed to proxy stderr so stdout stays protocol-only.
 
+## Optional decision receipts
+
+Receipt persistence is disabled unless `--receipts` is supplied.
+
+Example:
+
+~~~bash
+dotnet run --project src/AgentRuntimeGuard.McpProxy -- \
+  --policy examples/policies/filesystem-readonly.json \
+  --receipts .guard/receipts.db \
+  --max-receipts 10000 \
+  --session-id local-demo-001 \
+  -- npx -y @modelcontextprotocol/server-filesystem .
+~~~
+
+When enabled, each policy decision is written before it is returned to the proxy. If SQLite persistence fails, the policy evaluation fails rather than silently executing without the requested receipt.
+
+Stored fields are intentionally bounded:
+
+~~~text
+DecisionId
+EvaluatedAtUtc
+Effect
+RuleId
+AgentId
+SessionId
+ToolName
+Operation
+Resource
+~~~
+
+Not stored:
+
+~~~text
+Prompt
+MCP arguments
+Policy reason
+Tags
+Tool result
+Upstream stderr
+~~~
+
+Receipt retention is a global maximum count. Older rows are removed after a new receipt is inserted.
+
+### Query or export receipts
+
+Query a session:
+
+~~~bash
+dotnet run --project src/AgentRuntimeGuard.McpProxy -- receipts \
+  --database .guard/receipts.db \
+  --session local-demo-001 \
+  --limit 50
+~~~
+
+The command prints one JSON object per line, newest first. Redirect stdout to create a JSONL export:
+
+~~~bash
+dotnet run --project src/AgentRuntimeGuard.McpProxy -- receipts \
+  --database .guard/receipts.db \
+  --session local-demo-001 > receipts.jsonl
+~~~
+
+SQLite storage is local and is not encrypted by this project. File-system access to the database remains the operator's responsibility.
+
 ## Policy rules
 
 See examples/policies/filesystem-readonly.json.
@@ -123,6 +191,7 @@ src/
   AgentRuntimeGuard.Abstractions/
   AgentRuntimeGuard.Core/
   AgentRuntimeGuard.Api/
+  AgentRuntimeGuard.Receipts/
   AgentRuntimeGuard.McpProxy/
 
 tests/
@@ -145,7 +214,7 @@ For stdio MCP, the host must launch the guard proxy instead of launching the ups
 
 The proxy is not an OS sandbox, credential broker, network firewall, or process-isolation mechanism.
 
-See docs/adr/0001-policy-before-execution.md and docs/adr/0002-transparent-mcp-stdio-proxy.md.
+See docs/adr/0001-policy-before-execution.md, docs/adr/0002-transparent-mcp-stdio-proxy.md, and docs/adr/0003-bounded-decision-receipts.md.
 
 ## Design principles
 
@@ -154,6 +223,7 @@ See docs/adr/0001-policy-before-execution.md and docs/adr/0002-transparent-mcp-s
 - prefer explicit decisions over opaque risk scores;
 - fail conservatively when a tool call cannot be safely classified;
 - minimize copied/stored sensitive payloads;
+- make persistence opt-in and explicit;
 - add features only after a concrete integration justifies them;
 - keep limitations next to capability claims.
 
@@ -161,7 +231,7 @@ See docs/adr/0001-policy-before-execution.md and docs/adr/0002-transparent-mcp-s
 
 See docs/roadmap.md.
 
-After the MCP proxy, the next planned milestone is bounded local decision receipts, not a dashboard or hosted control plane.
+After decision receipts, the next useful direction is approval handling or lightweight tracing only if real usage justifies it.
 
 ## Security
 
