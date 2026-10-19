@@ -2,40 +2,45 @@
 
 [![CI](https://github.com/mahdiaghtaee/agent-runtime-guard-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdiaghtaee/agent-runtime-guard-dotnet/actions/workflows/ci.yml)
 
-A small .NET service for evaluating AI-agent tool actions before execution.
+A local-first .NET guard for evaluating AI-agent and MCP tool calls **before** they reach the upstream tool.
 
-The project keeps one boundary explicit: an agent proposes a tool action, local deterministic policy returns **Allow**, **RequireApproval**, or **Deny**, and the integration decides whether execution may continue.
+~~~text
+MCP host
+   |
+   | tools/call
+   v
+Agent Runtime Guard
+   |
+   +-- read_file    -> ALLOW -------------> upstream MCP server
+   |
+   +-- write_file   -> DENY --------------X
+   |
+   +-- unknown_tool -> REQUIRE_APPROVAL ---X
+~~~
+
+A denied call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
 
 > **Status:** early development. The deterministic policy boundary, stdio MCP enforcement path, and optional local decision receipts are implemented and covered by CI. This is not a production security product.
 
-## Current scope
+## What it does
 
-Implemented:
+- evaluates explicit `Allow`, `RequireApproval`, and `Deny` decisions;
+- intercepts MCP `tools/call` before forwarding;
+- passes allowed and non-tool JSON-RPC traffic through unchanged;
+- fails closed for denied, unapproved, or malformed tool-call traffic;
+- can record opt-in SQLite decision receipts with bounded metadata;
+- can query/export receipts per session as JSON Lines.
 
-- provider-neutral policy contracts;
-- deterministic rule precedence and wildcard matching;
-- conservative configurable defaults;
-- an ASP.NET Core evaluation endpoint;
-- a stdio MCP child-process proxy;
-- interception of MCP tools/call before upstream execution;
-- unchanged forwarding of allowed and non-tool JSON-RPC traffic;
-- local errors for Deny and currently-unhandled RequireApproval decisions;
-- fail-closed handling for malformed client JSON;
-- tests proving a denied tool call never reaches the upstream side of the proxy;
-- opt-in local SQLite decision receipts;
-- retention by maximum receipt count;
-- session-scoped receipt query/export as JSON Lines;
-- tests proving prompt, arguments, reason, and tags are not columns in the receipt schema;
-- CI and ADRs for the trust boundary.
+## What it deliberately does not do
 
-Deliberately not implemented yet:
+- no model-based risk scoring;
+- no hosted control plane;
+- no dashboard;
+- no process sandboxing or network isolation;
+- no raw prompt or full MCP argument persistence;
+- no production security or compliance claim.
 
-- approval UX/workflows;
-- replay;
-- argument-level secret or command inspection;
-- agent-specific adapters;
-- multi-tenant policy administration;
-- dashboards or hosted control-plane features.
+The next active milestone is a local human approval adapter for `RequireApproval`.
 
 ## HTTP quick start
 
