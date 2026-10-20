@@ -20,7 +20,7 @@ Agent Runtime Guard
 
 A denied call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
 
-> **Status:** early development. Deterministic policy enforcement, stdio MCP interception, bounded local receipts, and an opt-in loopback human-approval path are implemented on the current development branch. This is not a production security product.
+> **Status:** early development. Deterministic policy enforcement, stdio MCP interception, bounded local receipts, and an opt-in loopback human-approval path are implemented and covered by CI. This is not a production security product.
 
 ## What it does
 
@@ -41,7 +41,7 @@ A denied call is not merely hidden from the client: the proxy test suite verifie
 - no raw prompt or full MCP argument persistence;
 - no production security or compliance claim.
 
-The current feature branch adds an optional local human approval adapter for `RequireApproval`.
+Local human approval for `RequireApproval` is available as an explicit opt-in path.
 
 ## HTTP quick start
 

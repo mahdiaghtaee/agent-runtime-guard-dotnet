@@ -27,7 +27,7 @@ The roadmap stays short. A milestone is complete only when code, tests, and a ru
 - schema data-minimization tests;
 - fail-closed persistence behavior.
 
-## Milestone 4 — Local human approval — In review
+## Milestone 4 — Local human approval — Completed
 
 Tracked in issue #11.
 
@@ -42,7 +42,7 @@ Tracked in issue #11.
 - [x] invalid/missing bearer credentials cannot approve;
 - [x] raw MCP arguments are absent from approval responses;
 - [x] tests prove rejected/expired calls do not reach upstream;
-- [ ] full pull-request CI validation.
+- [x] full pull-request CI validation.
 
 Non-goals: public listener, dashboard, user accounts, remote IdP, multi-tenant approval administration, and production audit/compliance claims.
 
