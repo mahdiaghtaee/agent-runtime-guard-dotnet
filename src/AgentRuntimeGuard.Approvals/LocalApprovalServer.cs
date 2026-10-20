@@ -61,14 +61,19 @@ public sealed class LocalApprovalServer : IAsyncDisposable
             {
                 if (context.Request.Path.StartsWithSegments(
                         "/v1/approvals",
-                        StringComparison.OrdinalIgnoreCase)
-                    && !HasValidBearerToken(
-                        context.Request,
-                        bearerToken))
+                        StringComparison.OrdinalIgnoreCase))
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.Headers.WWWAuthenticate = "Bearer";
-                    return;
+                    context.Response.Headers.CacheControl = "no-store";
+                    context.Response.Headers.Pragma = "no-cache";
+
+                    if (!HasValidBearerToken(
+                            context.Request,
+                            bearerToken))
+                    {
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.Headers.WWWAuthenticate = "Bearer";
+                        return;
+                    }
                 }
 
                 await next(context);
