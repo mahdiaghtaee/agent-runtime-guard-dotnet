@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using AgentRuntimeGuard.Abstractions;
+using AgentRuntimeGuard.Approvals;
 
 namespace AgentRuntimeGuard.McpProxy;
 
@@ -10,10 +11,12 @@ internal sealed class McpToolCallPolicyGate
 
     private readonly IPolicyEvaluator _evaluator;
     private readonly string _proxyInstanceId;
+    private readonly IApprovalProvider? _approvalProvider;
 
     public McpToolCallPolicyGate(
         IPolicyEvaluator evaluator,
-        string proxyInstanceId)
+        string proxyInstanceId,
+        IApprovalProvider? approvalProvider = null)
     {
         _evaluator = evaluator ?? throw new ArgumentNullException(nameof(evaluator));
         _proxyInstanceId = string.IsNullOrWhiteSpace(proxyInstanceId)
@@ -21,6 +24,7 @@ internal sealed class McpToolCallPolicyGate
                 "A proxy instance id is required.",
                 nameof(proxyInstanceId))
             : proxyInstanceId;
+        _approvalProvider = approvalProvider;
     }
 
     public async ValueTask<McpGateDecision> EvaluateAsync(
@@ -92,16 +96,18 @@ internal sealed class McpToolCallPolicyGate
                         "Invalid params: tools/call requires params.name."));
             }
 
+            var actionRequest = new ToolActionRequest
+            {
+                AgentId = "mcp-stdio-client",
+                SessionId = _proxyInstanceId,
+                ToolName = toolName,
+                Operation = "tools/call",
+                Resource = "mcp:stdio",
+                Tags = ["mcp", "stdio"]
+            };
+
             var evaluation = await _evaluator.EvaluateAsync(
-                new ToolActionRequest
-                {
-                    AgentId = "mcp-stdio-client",
-                    SessionId = _proxyInstanceId,
-                    ToolName = toolName,
-                    Operation = "tools/call",
-                    Resource = "mcp:stdio",
-                    Tags = ["mcp", "stdio"]
-                },
+                actionRequest,
                 cancellationToken);
 
             if (evaluation.Effect == PolicyEffect.Allow)
@@ -109,13 +115,66 @@ internal sealed class McpToolCallPolicyGate
                 return McpGateDecision.ForwardUnchanged;
             }
 
-            var message = evaluation.Effect == PolicyEffect.Deny
-                ? "Tool call blocked by local policy."
-                : "Tool call requires approval, but no approval adapter is configured.";
+            if (evaluation.Effect == PolicyEffect.Deny)
+            {
+                return new McpGateDecision(
+                    false,
+                    CreatePolicyErrorResponse(
+                        id,
+                        "Tool call blocked by local policy.",
+                        evaluation));
+            }
+
+            if (_approvalProvider is null)
+            {
+                return new McpGateDecision(
+                    false,
+                    CreatePolicyErrorResponse(
+                        id,
+                        "Tool call requires approval, but no approval adapter is configured.",
+                        evaluation));
+            }
+
+            ApprovalOutcome approvalOutcome;
+            try
+            {
+                approvalOutcome =
+                    await _approvalProvider.RequestApprovalAsync(
+                        ApprovalRequest.From(
+                            actionRequest,
+                            evaluation),
+                        cancellationToken);
+            }
+            catch (OperationCanceledException)
+                when (cancellationToken.IsCancellationRequested)
+            {
+                throw;
+            }
+            catch (Exception)
+            {
+                return new McpGateDecision(
+                    false,
+                    CreatePolicyErrorResponse(
+                        id,
+                        "Approval broker failed; the tool call was not forwarded.",
+                        evaluation));
+            }
+
+            if (approvalOutcome == ApprovalOutcome.Approved)
+            {
+                return McpGateDecision.ForwardUnchanged;
+            }
+
+            var message = approvalOutcome == ApprovalOutcome.Expired
+                ? "Approval request expired; the tool call was not forwarded."
+                : "Tool call was rejected by the local approver.";
 
             return new McpGateDecision(
                 false,
-                CreatePolicyErrorResponse(id, message, evaluation));
+                CreatePolicyErrorResponse(
+                    id,
+                    message,
+                    evaluation));
         }
     }
 

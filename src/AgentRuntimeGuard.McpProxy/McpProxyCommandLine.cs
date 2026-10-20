@@ -6,7 +6,10 @@ internal sealed record McpProxyCommandLineOptions(
     IReadOnlyList<string> CommandArguments,
     string? ReceiptDatabasePath,
     int MaxReceipts,
-    string? SessionId);
+    string? SessionId,
+    int? ApprovalPort,
+    int ApprovalTimeoutSeconds,
+    string? ApprovalTokenEnvironmentVariable);
 
 internal static class McpProxyCommandLine
 {
@@ -28,8 +31,13 @@ internal static class McpProxyCommandLine
         string? policyPath = null;
         string? receiptDatabasePath = null;
         string? sessionId = null;
+        string? approvalTokenEnvironmentVariable = null;
+        int? approvalPort = null;
         var maxReceipts = 10_000;
+        var approvalTimeoutSeconds = 120;
         var retentionWasSpecified = false;
+        var approvalTimeoutWasSpecified = false;
+        var approvalTokenWasSpecified = false;
 
         for (var index = 0; index < separatorIndex; index++)
         {
@@ -87,6 +95,45 @@ internal static class McpProxyCommandLine
 
                     break;
 
+                case "--approval-port":
+                    if (!TryReadValue(args, ref index, separatorIndex, out var portText)
+                        || !int.TryParse(portText, out var parsedPort)
+                        || parsedPort is < 1 or > 65535)
+                    {
+                        error = "--approval-port must be between 1 and 65535.";
+                        return false;
+                    }
+
+                    approvalPort = parsedPort;
+                    break;
+
+                case "--approval-timeout-seconds":
+                    if (!TryReadValue(args, ref index, separatorIndex, out var timeoutText)
+                        || !int.TryParse(timeoutText, out approvalTimeoutSeconds)
+                        || approvalTimeoutSeconds is < 1 or > 3600)
+                    {
+                        error = "--approval-timeout-seconds must be between 1 and 3600.";
+                        return false;
+                    }
+
+                    approvalTimeoutWasSpecified = true;
+                    break;
+
+                case "--approval-token-env":
+                    if (!TryReadValue(
+                            args,
+                            ref index,
+                            separatorIndex,
+                            out approvalTokenEnvironmentVariable)
+                        || approvalTokenEnvironmentVariable!.Contains('='))
+                    {
+                        error = "--approval-token-env requires a valid environment variable name.";
+                        return false;
+                    }
+
+                    approvalTokenWasSpecified = true;
+                    break;
+
                 default:
                     error = $"Unknown option '{argument}'.";
                     return false;
@@ -106,6 +153,13 @@ internal static class McpProxyCommandLine
             return false;
         }
 
+        if ((approvalTimeoutWasSpecified || approvalTokenWasSpecified)
+            && approvalPort is null)
+        {
+            error = "--approval-timeout-seconds and --approval-token-env require --approval-port.";
+            return false;
+        }
+
         if (separatorIndex + 1 >= args.Length)
         {
             error = "An upstream MCP server command is required after '--'.";
@@ -118,7 +172,10 @@ internal static class McpProxyCommandLine
             args[(separatorIndex + 2)..],
             receiptDatabasePath,
             maxReceipts,
-            sessionId);
+            sessionId,
+            approvalPort,
+            approvalTimeoutSeconds,
+            approvalTokenEnvironmentVariable);
 
         return true;
     }
@@ -126,7 +183,9 @@ internal static class McpProxyCommandLine
     public static string Usage =>
         "Usage: AgentRuntimeGuard.McpProxy --policy <policy.json> " +
         "[--receipts <receipts.db>] [--max-receipts <count>] " +
-        "[--session-id <id>] -- <command> [arguments...]";
+        "[--session-id <id>] " +
+        "[--approval-port <port>] [--approval-timeout-seconds <1-3600>] " +
+        "[--approval-token-env <name>] -- <command> [arguments...]";
 
     private static bool TryReadValue(
         string[] args,

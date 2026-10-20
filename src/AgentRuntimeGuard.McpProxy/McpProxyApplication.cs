@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using AgentRuntimeGuard.Abstractions;
+using AgentRuntimeGuard.Approvals;
 using AgentRuntimeGuard.Core;
 using AgentRuntimeGuard.Receipts;
 
@@ -45,6 +46,8 @@ internal static class McpProxyApplication
             return 2;
         }
 
+        LocalApprovalServer? approvalServer = null;
+
         try
         {
             var ruleSet = await PolicyFileLoader.LoadAsync(
@@ -70,9 +73,57 @@ internal static class McpProxyApplication
                     $"[guard] receipts enabled; session={sessionId}");
             }
 
+            IApprovalProvider? approvalProvider = null;
+
+            if (options.ApprovalPort is not null)
+            {
+                var broker = new LocalApprovalBroker(
+                    TimeSpan.FromSeconds(
+                        options.ApprovalTimeoutSeconds));
+
+                var tokenWasGenerated =
+                    string.IsNullOrWhiteSpace(
+                        options.ApprovalTokenEnvironmentVariable);
+
+                var approvalToken = tokenWasGenerated
+                    ? ApprovalToken.Generate()
+                    : Environment.GetEnvironmentVariable(
+                        options.ApprovalTokenEnvironmentVariable!)
+                        ?? throw new InvalidOperationException(
+                            $"Approval token environment variable " +
+                            $"'{options.ApprovalTokenEnvironmentVariable}' is not set.");
+
+                ApprovalToken.Validate(approvalToken);
+
+                approvalServer = await LocalApprovalServer.StartAsync(
+                    broker,
+                    approvalToken,
+                    options.ApprovalPort.Value,
+                    cancellationToken);
+
+                approvalProvider = broker;
+
+                await error.WriteLineAsync(
+                    $"[guard] approval endpoint={approvalServer.BaseAddress}" +
+                    $" timeout={options.ApprovalTimeoutSeconds}s");
+
+                if (tokenWasGenerated)
+                {
+                    await error.WriteLineAsync(
+                        $"[guard] approval token={approvalToken}");
+                }
+                else
+                {
+                    await error.WriteLineAsync(
+                        $"[guard] approval token loaded from env " +
+                        $"{options.ApprovalTokenEnvironmentVariable}");
+                }
+            }
+
             var gate = new McpToolCallPolicyGate(
                 evaluator,
-                sessionId);
+                sessionId,
+                approvalProvider);
 
             var session = new McpStdioProxySession(gate);
             var runner = new StdioProxyProcessRunner();
@@ -96,6 +147,13 @@ internal static class McpProxyApplication
             await error.WriteLineAsync(
                 $"Agent Runtime Guard proxy failed: {exception.Message}");
             return 1;
+        }
+        finally
+        {
+            if (approvalServer is not null)
+            {
+                await approvalServer.DisposeAsync();
+            }
         }
     }
 
