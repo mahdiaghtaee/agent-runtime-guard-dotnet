@@ -1,0 +1,69 @@
+{
+  "defaultEffect": "RequireApproval",
+  "defaultReason": "This tool requires a local human decision in the approval demo.",
+  "rules": [
+    {
+      "id": "allow-read-tools",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "read*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Read-oriented filesystem tools are allowed."
+    },
+    {
+      "id": "allow-list-tools",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "list*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "List-oriented filesystem tools are allowed."
+    },
+    {
+      "id": "deny-write-tools",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "write*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Direct write-oriented tools are blocked in the demo."
+    },
+    {
+      "id": "deny-edit-tools",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "edit*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Edit-oriented tools are blocked in the demo."
+    },
+    {
+      "id": "deny-delete-tools",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "delete*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Delete-oriented tools are blocked in the demo."
+    },
+    {
+      "id": "review-structural-changes",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "create_directory",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Creating directories requires explicit local approval in the demo."
+    },
+    {
+      "id": "review-moves",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "move_file",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Moving files requires explicit local approval in the demo."
+    }
+  ]
+}
