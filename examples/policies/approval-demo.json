@@ -1,0 +1,33 @@
+{
+  "defaultEffect": "RequireApproval",
+  "defaultReason": "This demo tool requires explicit local approval.",
+  "rules": [
+    {
+      "id": "allow-demo-read",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "read_file",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "The demo read tool is allowed."
+    },
+    {
+      "id": "approve-demo-write",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "write_file",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "The demo write tool requires explicit local approval."
+    },
+    {
+      "id": "deny-demo-delete",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "delete_file",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "The demo delete tool is denied."
+    }
+  ]
+}
