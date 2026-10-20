@@ -77,7 +77,7 @@ On Windows, launch npx through cmd:
 dotnet run --project src/AgentRuntimeGuard.McpProxy -- --policy examples/policies/filesystem-readonly.json -- cmd /c npx -y @modelcontextprotocol/server-filesystem .
 ~~~
 
-The sample policy allows read/list-style tools, denies write/edit-style tools, and defaults everything else to RequireApproval. Since no approval adapter exists yet, RequireApproval stops the call.
+The sample policy allows read/list-style tools, denies write/edit-style tools, and defaults everything else to RequireApproval. Without approval explicitly enabled, RequireApproval remains fail-closed.
 
 ### MCP policy mapping
 
@@ -285,7 +285,7 @@ See docs/adr/0001-policy-before-execution.md, docs/adr/0002-transparent-mcp-stdi
 
 See docs/roadmap.md.
 
-After decision receipts, the next useful direction is approval handling or lightweight tracing only if real usage justifies it.
+With local approval implemented, the next useful direction is bounded approval tracing/metrics or agent-specific setup helpers only if real usage justifies them.
 
 ## Security
 

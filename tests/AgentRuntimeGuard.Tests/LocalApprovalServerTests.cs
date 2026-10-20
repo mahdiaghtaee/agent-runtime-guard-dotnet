@@ -47,6 +47,14 @@ public sealed class LocalApprovalServerTests
 
         var accepted = await client.GetAsync("/v1/approvals");
         Assert.Equal(HttpStatusCode.OK, accepted.StatusCode);
+        Assert.Contains(
+            "no-store",
+            accepted.Headers.CacheControl?.ToString() ?? string.Empty,
+            StringComparison.OrdinalIgnoreCase);
+        Assert.Contains(
+            "no-cache",
+            accepted.Headers.Pragma.Select(value => value.Name),
+            StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
