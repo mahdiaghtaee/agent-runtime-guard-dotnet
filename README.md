@@ -4,21 +4,13 @@
 
 A local-first .NET guard for evaluating AI-agent and MCP tool calls **before** they reach the upstream tool.
 
-~~~text
-MCP host
-   |
-   | tools/call
-   v
-Agent Runtime Guard
-   |
-   +-- read_file    -> ALLOW -------------> upstream MCP server
-   |
-   +-- write_file   -> DENY --------------X
-   |
-   +-- unknown_tool -> REQUIRE_APPROVAL ---X
-~~~
+<p align="center">
+  <img src="docs/assets/approval-flow.svg" alt="Agent Runtime Guard MCP policy and local human approval flow" width="100%" />
+</p>
 
-A denied call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
+A denied, rejected, or expired call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
+
+**[Run the local approval demo →](docs/DEMO.md)**
 
 > **Status:** early development. Deterministic policy enforcement, stdio MCP interception, bounded local receipts, and an opt-in loopback human-approval path are implemented and covered by CI. This is not a production security product.
 

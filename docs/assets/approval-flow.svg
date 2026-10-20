@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Runtime Guard approval flow</title>
+  <desc id="desc">MCP tool calls enter Agent Runtime Guard. Allow goes upstream, Deny is blocked, and RequireApproval waits for a local human decision before forwarding.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#64748b"/>
+    </marker>
+    <style>
+      text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .box { fill: #0f172a; stroke: #334155; stroke-width: 2; rx: 14; }
+      .label { fill: #f8fafc; font-size: 20px; font-weight: 600; }
+      .small { fill: #cbd5e1; font-size: 15px; }
+      .line { stroke: #64748b; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+      .allow { fill: #166534; stroke: #22c55e; stroke-width: 2; rx: 12; }
+      .approval { fill: #7c2d12; stroke: #f59e0b; stroke-width: 2; rx: 12; }
+      .deny { fill: #7f1d1d; stroke: #ef4444; stroke-width: 2; rx: 12; }
+      .upstream { fill: #164e63; stroke: #06b6d4; stroke-width: 2; rx: 14; }
+      .blocked { fill: #450a0a; stroke: #ef4444; stroke-width: 2; rx: 12; }
+    </style>
+  </defs>
+  <rect x="30" y="195" width="180" height="90" class="box"/>
+  <text x="120" y="232" text-anchor="middle" class="label">MCP Host</text>
+  <text x="120" y="258" text-anchor="middle" class="small">tools/call</text>
+  <path d="M210 240 H285" class="line"/>
+  <rect x="290" y="175" width="230" height="130" class="box"/>
+  <text x="405" y="220" text-anchor="middle" class="label">Agent Runtime Guard</text>
+  <text x="405" y="250" text-anchor="middle" class="small">deterministic policy</text>
+  <text x="405" y="275" text-anchor="middle" class="small">before execution</text>
+  <path d="M520 205 H620" class="line"/>
+  <rect x="625" y="165" width="180" height="80" class="allow"/>
+  <text x="715" y="198" text-anchor="middle" class="label">ALLOW</text>
+  <text x="715" y="222" text-anchor="middle" class="small">forward unchanged</text>
+  <path d="M805 205 H945" class="line"/>
+  <rect x="950" y="165" width="220" height="80" class="upstream"/>
+  <text x="1060" y="198" text-anchor="middle" class="label">Upstream MCP</text>
+  <text x="1060" y="222" text-anchor="middle" class="small">tool executes</text>
+  <path d="M520 240 H585 V335 H620" class="line"/>
+  <rect x="625" y="295" width="180" height="80" class="approval"/>
+  <text x="715" y="328" text-anchor="middle" class="label">REQUIRE APPROVAL</text>
+  <text x="715" y="352" text-anchor="middle" class="small">loopback + bearer</text>
+  <path d="M805 325 H875 V270 H945" class="line"/>
+  <text x="870" y="292" text-anchor="middle" class="small">approve</text>
+  <path d="M805 350 H930" class="line"/>
+  <rect x="935" y="315" width="235" height="80" class="blocked"/>
+  <text x="1052" y="348" text-anchor="middle" class="label">BLOCKED</text>
+  <text x="1052" y="372" text-anchor="middle" class="small">reject / expire / failure</text>
+  <path d="M520 275 H565 V445 H930" class="line"/>
+  <rect x="935" y="415" width="235" height="60" class="deny"/>
+  <text x="1052" y="452" text-anchor="middle" class="label">DENY → BLOCKED</text>
+</svg>
