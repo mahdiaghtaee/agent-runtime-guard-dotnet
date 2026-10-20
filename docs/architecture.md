@@ -52,6 +52,16 @@ Transport-neutral contracts: ToolActionRequest, PolicyEffect, PolicyEvaluationRe
 
 Deterministic policy matching, priority ordering, wildcard matching, and conservative defaults.
 
+### AgentRuntimeGuard.Approvals
+
+Optional human approval components:
+
+- `IApprovalProvider` keeps approval outside Core;
+- `LocalApprovalBroker` manages bounded pending requests and timeout/reject/approve outcomes;
+- `LocalApprovalServer` exposes a bearer-protected HTTP surface bound only to IPv4 loopback;
+- generated tokens use cryptographic random bytes;
+- pending metadata excludes raw prompts and MCP arguments.
+
 ### AgentRuntimeGuard.Api
 
 A small HTTP integration boundary for direct policy evaluation.
@@ -74,8 +84,9 @@ The stdio adapter:
 - inspects only enough JSON-RPC structure to identify tools/call;
 - maps tool name into the existing policy contract;
 - optionally decorates the evaluator with receipt persistence;
-- forwards allowed requests unchanged;
-- blocks Deny and RequireApproval before upstream execution;
+- optionally waits for local human approval after `RequireApproval`;
+- forwards the original request after `Allow` or explicit approval;
+- blocks `Deny`, rejection, expiry, missing-provider, and broker-failure paths;
 - relays upstream stdout responses/errors unchanged;
 - sends upstream diagnostics only to stderr.
 
@@ -128,3 +139,13 @@ Argument-aware policy is intentionally deferred until there is an explicit redac
 The proxy creates an enforcement point only when the host is configured to use it.
 
 It does not stop a sufficiently privileged actor from launching the upstream server directly, and it does not provide process sandboxing, network isolation, credential brokering, database encryption, or authenticated receipt access.
+
+## Approval boundary
+
+For a `RequireApproval` decision, the MCP adapter sends only bounded metadata to `IApprovalProvider`: decision ID, effect, rule ID, session ID, tool name, operation, and resource. The local broker adds creation and expiry timestamps.
+
+The first server binds directly to `IPAddress.Loopback`; approval routes require a bearer token. Explicit tokens are loaded from an environment variable rather than passed as a raw command-line secret.
+
+The complete MCP `arguments` object is never copied into the approval request or pending-approval HTTP response.
+
+Approval remains fail-closed: timeout, rejection, cancellation, missing provider, and broker errors never turn `RequireApproval` into `Allow`.

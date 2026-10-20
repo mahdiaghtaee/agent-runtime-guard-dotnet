@@ -4,7 +4,20 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
-No active release changes yet.
+### Added
+
+- Optional local human approval for `RequireApproval` MCP tool calls.
+- Loopback-only bearer-protected pending-approval HTTP API.
+- Generated or environment-supplied approval bearer tokens.
+- Configurable approval timeout and bounded pending metadata.
+- End-to-end tests for approved, rejected, expired, missing-provider, and invalid-token paths.
+
+### Security
+
+- Raw MCP arguments are not copied into approval requests or approval HTTP responses.
+- Approval routes bind only to IPv4 loopback.
+- Rejection, timeout, missing provider, and broker failure prevent upstream execution.
+- Explicit approval tokens are read from an environment variable rather than accepted as a raw command-line secret.
 
 ## 0.2.0 - 2026-10-18
 
