@@ -348,6 +348,52 @@ public sealed class McpStdioProxySessionTests
     }
 
     [Fact]
+    public async Task Approval_provider_failure_never_reaches_upstream()
+    {
+        var evaluator = new PolicyEvaluator(Rules());
+        var session = CreateSession(
+            evaluator,
+            new ThrowingApprovalProvider());
+
+        var clientInput = new LinePipe();
+        var clientOutput = new LinePipe();
+        var upstreamInput = new LinePipe();
+        var upstreamOutput = new LinePipe();
+        var received = new List<string>();
+
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        var proxyTask = session.RunAsync(
+            clientInput.Reader,
+            clientOutput.Writer,
+            upstreamOutput.Reader,
+            upstreamInput.Writer,
+            cancellation.Token);
+
+        var serverTask = RunFakeUpstreamAsync(
+            upstreamInput,
+            upstreamOutput,
+            received,
+            cancellation.Token);
+
+        await clientInput.WriteAsync(
+            """{"jsonrpc":"2.0","id":23,"method":"tools/call","params":{"name":"needs_approval","arguments":{}}}""",
+            cancellation.Token);
+
+        clientInput.CompleteWriter();
+
+        await Task.WhenAll(proxyTask, serverTask);
+
+        Assert.Empty(received);
+
+        var response = await clientOutput.ReadAsync(cancellation.Token);
+        Assert.Contains(
+            "Approval broker failed",
+            response,
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Malformed_payload_fails_closed_without_forwarding()
     {
         var evaluator = new PolicyEvaluator(Rules());
@@ -475,6 +521,14 @@ public sealed class McpStdioProxySessionTests
             ResourcePattern = "mcp:stdio",
             Reason = $"Matched {id}."
         };
+
+    private sealed class ThrowingApprovalProvider : IApprovalProvider
+    {
+        public ValueTask<ApprovalOutcome> RequestApprovalAsync(
+            ApprovalRequest request,
+            CancellationToken cancellationToken = default) =>
+            throw new IOException("Simulated approval provider failure.");
+    }
 
     private sealed class StaticApprovalProvider(
         ApprovalOutcome outcome) : IApprovalProvider
