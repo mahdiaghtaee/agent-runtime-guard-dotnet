@@ -5,6 +5,7 @@
 
   <ItemGroup>
     <ProjectReference Include="../AgentRuntimeGuard.Abstractions/AgentRuntimeGuard.Abstractions.csproj" />
+    <ProjectReference Include="../AgentRuntimeGuard.Approvals/AgentRuntimeGuard.Approvals.csproj" />
     <ProjectReference Include="../AgentRuntimeGuard.Core/AgentRuntimeGuard.Core.csproj" />
     <ProjectReference Include="../AgentRuntimeGuard.Receipts/AgentRuntimeGuard.Receipts.csproj" />
   </ItemGroup>
