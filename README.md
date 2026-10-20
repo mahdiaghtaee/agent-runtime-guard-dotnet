@@ -43,6 +43,10 @@ A denied call is not merely hidden from the client: the proxy test suite verifie
 
 Local human approval for `RequireApproval` is available as an explicit opt-in path.
 
+## Runnable demo
+
+A self-contained two-terminal demo for Allow, Deny, and real local human approval is available in [docs/DEMO.md](docs/DEMO.md). It uses the actual MCP proxy and an in-repository JSON-RPC upstream process, so no external MCP package is required.
+
 ## HTTP quick start
 
 Requirements: .NET 10 SDK.

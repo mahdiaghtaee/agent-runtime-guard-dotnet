@@ -50,5 +50,9 @@ Global
         {658D4EBA-E4C7-4C38-809C-49C58D49A1DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
         {658D4EBA-E4C7-4C38-809C-49C58D49A1DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
         {658D4EBA-E4C7-4C38-809C-49C58D49A1DD}.Release|Any CPU.Build.0 = Release|Any CPU
+        {A9D6F2E3-7C8A-4E3F-9B1D-52A1E55A37F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+        {A9D6F2E3-7C8A-4E3F-9B1D-52A1E55A37F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+        {A9D6F2E3-7C8A-4E3F-9B1D-52A1E55A37F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+        {A9D6F2E3-7C8A-4E3F-9B1D-52A1E55A37F4}.Release|Any CPU.Build.0 = Release|Any CPU
     EndGlobalSection
 EndGlobal
