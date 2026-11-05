@@ -37,7 +37,7 @@ The roadmap stays short. A milestone is complete only when code, tests, and a ru
 - runnable in-repository demo;
 - full CI validation.
 
-## Milestone 5 — Bounded approval telemetry — In review
+## Milestone 5 — Bounded approval telemetry — Completed
 
 Tracked in issue #21.
 
@@ -50,7 +50,7 @@ Tracked in issue #21.
 - [x] cancellation and provider-error observability;
 - [x] no OpenTelemetry SDK/exporter dependency;
 - [x] telemetry data-minimization tests;
-- [ ] full pull-request CI validation.
+- [x] full pull-request CI validation.
 
 Non-goals: collector deployment, dashboard, Prometheus endpoint, hosted telemetry backend, per-tool/high-cardinality metrics, or production monitoring claims.
 
