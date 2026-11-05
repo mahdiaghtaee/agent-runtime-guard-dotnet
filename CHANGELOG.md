@@ -6,6 +6,9 @@ All notable changes to this project are documented here.
 
 ### Added
 
+- Bounded approval telemetry using .NET `ActivitySource` and `Meter`.
+- Low-cardinality approval outcome counter and duration histogram.
+- Approval tracing for approved, rejected, expired, cancelled, and error outcomes without exporter dependencies.
 - Optional local human approval for `RequireApproval` MCP tool calls.
 - Loopback-only bearer-protected pending-approval HTTP API.
 - Generated or environment-supplied approval bearer tokens.
@@ -14,6 +17,7 @@ All notable changes to this project are documented here.
 
 ### Security
 
+- Approval telemetry excludes decision/session/rule/tool/resource identifiers, MCP arguments, bearer tokens, prompts, and tool results.
 - Raw MCP arguments are not copied into approval requests or approval HTTP responses.
 - Approval routes bind only to IPv4 loopback.
 - Rejection, timeout, missing provider, and broker failure prevent upstream execution.

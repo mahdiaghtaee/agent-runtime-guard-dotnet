@@ -101,7 +101,8 @@ internal static class McpProxyApplication
                     options.ApprovalPort.Value,
                     cancellationToken);
 
-                approvalProvider = broker;
+                approvalProvider =
+                    new InstrumentedApprovalProvider(broker);
 
                 await error.WriteLineAsync(
                     $"[guard] approval endpoint={approvalServer.BaseAddress}" +

@@ -36,6 +36,12 @@ When enabled:
 
 The bearer token is not OS-user isolation. A sufficiently privileged same-host process remains outside this boundary. Generated tokens are written once to stderr for the local operator, so terminal/log capture must be treated accordingly.
 
+## Telemetry boundary
+
+Approval telemetry uses a fixed outcome vocabulary and intentionally omits decision ID, session ID, rule ID, tool name, operation, resource, MCP arguments, bearer tokens, prompts, and tool results.
+
+The repository does not configure an exporter, collector, or remote telemetry endpoint. `ActivitySource` and `Meter` data remains in-process unless the host explicitly subscribes and exports it.
+
 ## Sensitive data
 
 The evaluation contract intentionally does not require raw prompts or complete tool argument payloads. Callers should prefer bounded metadata and resource identifiers over copying secret-bearing payloads into policy requests.

@@ -29,26 +29,33 @@ The roadmap stays short. A milestone is complete only when code, tests, and a ru
 
 ## Milestone 4 — Local human approval — Completed
 
-Tracked in issue #11.
+- loopback-only bearer-protected approval server;
+- bounded approval metadata;
+- configurable timeout;
+- explicit approve/reject flow;
+- fail-closed reject/expire/provider-failure behavior;
+- runnable in-repository demo;
+- full CI validation.
 
-- [x] approval abstraction outside Core;
-- [x] opt-in loopback-only HTTP approval server;
-- [x] generated or environment-supplied bearer token;
-- [x] bounded pending-approval metadata;
-- [x] configurable timeout;
-- [x] approved `RequireApproval` calls forward unchanged;
-- [x] reject/expire/broker-failure paths remain blocked;
-- [x] no-provider behavior remains fail-closed;
-- [x] invalid/missing bearer credentials cannot approve;
-- [x] raw MCP arguments are absent from approval responses;
-- [x] tests prove rejected/expired calls do not reach upstream;
+## Milestone 5 — Bounded approval telemetry — Completed
+
+Tracked in issue #21.
+
+- [x] provider decorator outside Core;
+- [x] `ActivitySource` approval wait trace;
+- [x] completed-outcome counter;
+- [x] approval-duration histogram;
+- [x] bounded outcome vocabulary;
+- [x] no decision/session/tool/resource tags;
+- [x] cancellation and provider-error observability;
+- [x] no OpenTelemetry SDK/exporter dependency;
+- [x] telemetry data-minimization tests;
 - [x] full pull-request CI validation.
 
-Non-goals: public listener, dashboard, user accounts, remote IdP, multi-tenant approval administration, and production audit/compliance claims.
+Non-goals: collector deployment, dashboard, Prometheus endpoint, hosted telemetry backend, per-tool/high-cardinality metrics, or production monitoring claims.
 
 ## Later
 
-- bounded OpenTelemetry approval metrics/traces;
 - agent-specific setup helpers;
 - richer resource policies;
 - argument inspection/redaction;
