@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "guarded-filesystem": {
+      "type": "stdio",
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "${env:ARG_GUARD_REPO}/src/AgentRuntimeGuard.McpProxy/AgentRuntimeGuard.McpProxy.csproj",
+        "--",
+        "--policy",
+        "${env:ARG_GUARD_REPO}/examples/policies/cursor-workspace.json",
+        "--approval-port",
+        "5087",
+        "--approval-timeout-seconds",
+        "120",
+        "--approval-token-env",
+        "ARG_APPROVAL_TOKEN",
+        "--",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${workspaceFolder}"
+      ]
+    }
+  }
+}
