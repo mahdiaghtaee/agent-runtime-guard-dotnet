@@ -4,16 +4,26 @@ All notable changes to this project are documented here.
 
 ## Unreleased
 
+## 0.3.0 - 2026-11-05
+
 ### Added
 
-- Bounded approval telemetry using .NET `ActivitySource` and `Meter`.
-- Low-cardinality approval outcome counter and duration histogram.
-- Approval tracing for approved, rejected, expired, cancelled, and error outcomes without exporter dependencies.
 - Optional local human approval for `RequireApproval` MCP tool calls.
 - Loopback-only bearer-protected pending-approval HTTP API.
 - Generated or environment-supplied approval bearer tokens.
 - Configurable approval timeout and bounded pending metadata.
-- End-to-end tests for approved, rejected, expired, missing-provider, and invalid-token paths.
+- Runnable in-repository approval demo covering Allow, Deny, approve, and reject paths.
+- Bounded approval telemetry using .NET `ActivitySource` and `Meter`.
+- Low-cardinality approval outcome counter and duration histogram.
+- Approval tracing for approved, rejected, expired, cancelled, and error outcomes without exporter dependencies.
+- Cursor MCP setup guide with Windows and macOS/Linux presets.
+- Conservative Cursor workspace policy for read, mutation, and destructive filesystem tool classes.
+- CI contract tests protecting the public Cursor preset and guard-before-upstream launch chain.
+
+### Changed
+
+- `RequireApproval` can now wait for an explicit local decision when the approval provider is enabled instead of always blocking locally.
+- The README now points directly to both the runnable approval demo and the guarded Cursor setup.
 
 ### Security
 
@@ -22,6 +32,8 @@ All notable changes to this project are documented here.
 - Approval routes bind only to IPv4 loopback.
 - Rejection, timeout, missing provider, and broker failure prevent upstream execution.
 - Explicit approval tokens are read from an environment variable rather than accepted as a raw command-line secret.
+- Unclassified tools in the Cursor example fall back to `RequireApproval` rather than being silently allowed.
+- The Cursor integration remains bypassable if a client launches an upstream MCP server outside the guard; it is not a process sandbox.
 
 ## 0.2.0 - 2026-10-18
 

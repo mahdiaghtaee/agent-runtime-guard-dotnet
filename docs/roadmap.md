@@ -54,9 +54,18 @@ Tracked in issue #21.
 
 Non-goals: collector deployment, dashboard, Prometheus endpoint, hosted telemetry backend, per-tool/high-cardinality metrics, or production monitoring claims.
 
+## Milestone 6 — Guarded Cursor setup — Completed
+
+- project-level Cursor MCP presets for Windows and macOS/Linux;
+- guard proxy launched before the upstream filesystem MCP server;
+- conservative workspace policy with explicit Allow / RequireApproval / Deny classes;
+- unknown tools default to `RequireApproval`;
+- local approval flow documented for Cursor users;
+- CI contract tests for policy posture and launch-chain ordering.
+
 ## Later
 
-- agent-specific setup helpers;
+- additional client-specific setup helpers when real usage justifies them;
 - richer resource policies;
 - argument inspection/redaction;
 - replay;
