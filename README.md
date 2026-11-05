@@ -10,7 +10,7 @@ A local-first .NET guard for evaluating AI-agent and MCP tool calls **before** t
 
 A denied, rejected, or expired call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
 
-**[Run the local approval demo →](docs/DEMO.md)**
+**[Run the local approval demo →](docs/DEMO.md)** · **[Use the guarded Cursor preset →](docs/CURSOR.md)**
 
 > **Status:** early development. Deterministic policy enforcement, stdio MCP interception, bounded local receipts, and an opt-in loopback human-approval path are implemented and covered by CI. This is not a production security product.
 
@@ -317,7 +317,7 @@ See docs/adr/0001-policy-before-execution.md, docs/adr/0002-transparent-mcp-stdi
 
 See docs/roadmap.md.
 
-With bounded approval telemetry implemented, the next useful direction is agent-specific setup helpers only if real usage justifies them.
+A first client-specific setup preset is available for Cursor. Additional client helpers should follow only when real usage justifies them.
 
 ## Security
 
