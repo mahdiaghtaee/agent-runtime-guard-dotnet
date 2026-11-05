@@ -1,0 +1,123 @@
+{
+  "defaultEffect": "RequireApproval",
+  "defaultReason": "This MCP tool is not explicitly classified by the Cursor workspace preset.",
+  "rules": [
+    {
+      "id": "deny-workspace-move",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "move*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Moving or renaming workspace content is blocked by this preset."
+    },
+    {
+      "id": "deny-workspace-delete",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "delete*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Delete-oriented workspace tools are blocked by this preset."
+    },
+    {
+      "id": "deny-workspace-remove",
+      "priority": 300,
+      "effect": "Deny",
+      "toolPattern": "remove*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Remove-oriented workspace tools are blocked by this preset."
+    },
+    {
+      "id": "approve-workspace-write",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "write*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Writing workspace content requires explicit local approval."
+    },
+    {
+      "id": "approve-workspace-edit",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "edit*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Editing workspace content requires explicit local approval."
+    },
+    {
+      "id": "approve-workspace-append",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "append*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Appending workspace content requires explicit local approval."
+    },
+    {
+      "id": "approve-workspace-create",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "create*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Creating workspace content requires explicit local approval."
+    },
+    {
+      "id": "approve-workspace-copy",
+      "priority": 200,
+      "effect": "RequireApproval",
+      "toolPattern": "copy*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Copying workspace content requires explicit local approval."
+    },
+    {
+      "id": "allow-workspace-read",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "read*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Read-only workspace access is allowed."
+    },
+    {
+      "id": "allow-workspace-list",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "list*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Directory listing is allowed."
+    },
+    {
+      "id": "allow-workspace-search",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "search*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Workspace search is allowed."
+    },
+    {
+      "id": "allow-workspace-metadata",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "get*",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Workspace metadata reads are allowed."
+    },
+    {
+      "id": "allow-workspace-tree",
+      "priority": 100,
+      "effect": "Allow",
+      "toolPattern": "directory_tree",
+      "operationPattern": "tools/call",
+      "resourcePattern": "mcp:stdio",
+      "reason": "Directory tree inspection is allowed."
+    }
+  ]
+}
