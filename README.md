@@ -1,8 +1,9 @@
 # Agent Runtime Guard for .NET
 
 [![CI](https://github.com/mahdiaghtaee/agent-runtime-guard-dotnet/actions/workflows/ci.yml/badge.svg)](https://github.com/mahdiaghtaee/agent-runtime-guard-dotnet/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/mahdiaghtaee/agent-runtime-guard-dotnet)](https://github.com/mahdiaghtaee/agent-runtime-guard-dotnet/releases/tag/v0.3.0)
 
-A local-first .NET guard for evaluating AI-agent and MCP tool calls **before** they reach the upstream tool.
+A local-first .NET enforcement proxy for AI-agent and MCP tool calls. It makes an explicit **Allow / RequireApproval / Deny** decision before the upstream tool sees the request.
 
 <p align="center">
   <img src="docs/assets/approval-flow.svg" alt="Agent Runtime Guard MCP policy and local human approval flow" width="100%" />
@@ -10,9 +11,32 @@ A local-first .NET guard for evaluating AI-agent and MCP tool calls **before** t
 
 A denied, rejected, or expired call is not merely hidden from the client: the proxy test suite verifies that it never reaches upstream input.
 
-**[Run the local approval demo →](docs/DEMO.md)** · **[Use the guarded Cursor preset →](docs/CURSOR.md)**
+**[Run the approval demo →](docs/DEMO.md)** · **[Use the guarded Cursor preset →](docs/CURSOR.md)** · **[Read the v0.3.0 release notes →](docs/releases/v0.3.0.md)**
 
-> **Status:** early development. Deterministic policy enforcement, stdio MCP interception, bounded local receipts, and an opt-in loopback human-approval path are implemented and covered by CI. This is not a production security product.
+> **Status:** experimental, local-first, and covered by CI. The project includes deterministic policy enforcement, stdio MCP interception, bounded local receipts, opt-in local human approval, bounded approval telemetry, and a tested Cursor integration. It is not a production security product.
+
+## Why this exists
+
+AI clients increasingly call tools that can read, write, move, or delete real resources. Relying only on the client UI makes that execution boundary easy to blur.
+
+Agent Runtime Guard adds a separate, deterministic enforcement hop between an MCP client and the upstream server:
+
+~~~text
+MCP client
+  -> AgentRuntimeGuard.McpProxy
+     -> policy decision
+        -> optional local approval
+           -> upstream MCP server
+~~~
+
+The important property is simple: a blocked call is stopped before it reaches upstream input.
+
+## 30-second tour
+
+- **See the boundary:** run [the local approval demo](docs/DEMO.md) for Allow, Deny, approve, and reject paths.
+- **Use it with a real client:** copy [the guarded Cursor preset](docs/CURSOR.md).
+- **Inspect the proof:** CI covers proxy blocking, approval outcomes, data minimization, telemetry bounds, and the public Cursor preset contract.
+- **Understand the limits:** read the [trust boundary](#trust-boundary) before treating the guard as a security control.
 
 ## What it does
 
