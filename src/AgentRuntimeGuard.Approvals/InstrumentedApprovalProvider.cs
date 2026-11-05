@@ -81,6 +81,7 @@ public sealed class InstrumentedApprovalProvider : IApprovalProvider
             ApprovalOutcome.Approved => "approved",
             ApprovalOutcome.Rejected => "rejected",
             ApprovalOutcome.Expired => "expired",
-            _ => "unknown"
+            _ => throw new InvalidOperationException(
+                $"Unsupported approval outcome '{outcome}'.")
         };
 }
