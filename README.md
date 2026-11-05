@@ -22,7 +22,8 @@ A denied, rejected, or expired call is not merely hidden from the client: the pr
 - fails closed for denied, rejected, expired, broker-failed, or malformed tool-call traffic;
 - can expose pending approvals on a bearer-protected loopback-only HTTP endpoint;
 - can record opt-in SQLite decision receipts with bounded metadata;
-- can query/export receipts per session as JSON Lines.
+- can query/export receipts per session as JSON Lines;
+- emits bounded in-process approval metrics/traces through .NET `Meter` and `ActivitySource`.
 
 ## What it deliberately does not do
 
@@ -141,6 +142,41 @@ Pending approval responses contain only decision/rule/session/tool/operation/res
 Timeout, rejection, missing provider, invalid bearer token, and broker failure all remain fail-closed.
 
 The bearer token protects the loopback HTTP endpoint from unauthenticated requests; it is not OS user isolation or a remote identity system.
+
+## Bounded approval telemetry
+
+The local approval provider is wrapped with lightweight .NET diagnostics that OpenTelemetry-compatible hosts can subscribe to.
+
+Source / meter name:
+
+~~~text
+AgentRuntimeGuard.Approvals
+~~~
+
+Instruments:
+
+~~~text
+agent_runtime_guard.approval.completed   counter
+agent_runtime_guard.approval.duration    histogram (ms)
+~~~
+
+Both metrics use exactly one bounded tag:
+
+~~~text
+outcome = approved | rejected | expired | cancelled | error
+~~~
+
+The approval activity is named:
+
+~~~text
+approval.wait
+~~~
+
+Its only project-defined tag is `approval.outcome` with the same bounded values.
+
+Telemetry deliberately excludes decision ID, session ID, rule ID, tool name, operation, resource, MCP arguments, bearer token, prompt, and tool result.
+
+No exporter or network sink is enabled by this project. Without a listener/provider, the diagnostics stay in-process and nothing is transmitted.
 
 ## Optional decision receipts
 
@@ -281,7 +317,7 @@ See docs/adr/0001-policy-before-execution.md, docs/adr/0002-transparent-mcp-stdi
 
 See docs/roadmap.md.
 
-With local approval implemented, the next useful direction is bounded approval tracing/metrics or agent-specific setup helpers only if real usage justifies them.
+With bounded approval telemetry implemented, the next useful direction is agent-specific setup helpers only if real usage justifies them.
 
 ## Security
 

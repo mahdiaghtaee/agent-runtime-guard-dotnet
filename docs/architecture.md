@@ -60,7 +60,8 @@ Optional human approval components:
 - `LocalApprovalBroker` manages bounded pending requests and timeout/reject/approve outcomes;
 - `LocalApprovalServer` exposes a bearer-protected HTTP surface bound only to IPv4 loopback;
 - generated tokens use cryptographic random bytes;
-- pending metadata excludes raw prompts and MCP arguments.
+- pending metadata excludes raw prompts and MCP arguments;
+- `InstrumentedApprovalProvider` adds low-cardinality `ActivitySource`/`Meter` instrumentation without coupling the broker to a telemetry SDK.
 
 ### AgentRuntimeGuard.Api
 
@@ -149,3 +150,17 @@ The first server binds directly to `IPAddress.Loopback`; approval routes require
 The complete MCP `arguments` object is never copied into the approval request or pending-approval HTTP response.
 
 Approval remains fail-closed: timeout, rejection, cancellation, missing provider, and broker errors never turn `RequireApproval` into `Allow`.
+
+## Approval telemetry boundary
+
+`InstrumentedApprovalProvider` decorates the configured approval provider. It emits:
+
+- counter `agent_runtime_guard.approval.completed`;
+- histogram `agent_runtime_guard.approval.duration` in milliseconds;
+- activity `approval.wait` from source `AgentRuntimeGuard.Approvals`.
+
+The only metric dimension is `outcome`, restricted to `approved`, `rejected`, `expired`, `cancelled`, or `error`. The activity uses only `approval.outcome`.
+
+Decision ID, session ID, rule ID, tool name, operation, resource, MCP arguments, bearer token, prompt, and tool result are intentionally excluded from telemetry.
+
+The project uses `System.Diagnostics.Metrics` and `System.Diagnostics.ActivitySource`; it does not require an OpenTelemetry SDK or exporter package and does not transmit telemetry on its own.
